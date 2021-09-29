@@ -33,7 +33,7 @@ for schema in tests:
             inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
         if k.startswith('question'):
             vraag_antwoord(k,v)
-
+""" 
 
 antwoord = f"question-1_checkradio-answer-label-{tests[0]['V1']}"
 driver.find_element_by_id(f"question-1_checkradio-answer-label-{tests[0]['V1']}").click()
@@ -41,5 +41,13 @@ driver.find_element_by_id("button-next-nav").click()
 driver.find_element_by_id("question-2_checkradio-answer-label-4").click()
 driver.find_element_by_id("button-next-nav").click()
 
+driver.find_element_by_id("question-28_sq-1_checkradio-answer-label-1").click()
+driver.find_element_by_id("question-28_sq-2_checkradio-answer-label-1").click()
+driver.find_element_by_id("question-28_sq-3_checkradio-answer-label-5").click()
+driver.find_element_by_id("button-next-nav").click()
 
-print(driver.title)
+count_of_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
+count_of_divs
+
+
+print(driver.title) """
