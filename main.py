@@ -58,7 +58,7 @@ def get_q_id():
     return vraagid
 
 def get_q_type():
-    
+    return None
 
 
 """
