@@ -1,0 +1,31 @@
+imput:
+    csv bestand met als eerste kolom login
+    in de volgende kolommen komen de vraagnummers van de vragen waarvan het antwoord van belang is.
+    Dus als voor het testen van de routing V1 en V6 van belang zijn, hoeven alleen die vragen
+    in de csv te komen, de rest wordt herkend en random ingevuld.
+
+methode:
+    csv met testscenario's inladen als een lijst met dicts
+    voor iedere vraag in survey:
+        1. vraagnummer achterhalen
+        2. vraagtype achterhalen:
+            SR          - //form/div/div/div[1] data-answer-type="Radiobutton"
+            MR          - //form/div/div/div[1] data-answer-type="Checkbox"
+            Tabelvraag  - //form/div id=vraagnummer table="" geeft aan dat het een tabelvraag is
+            open vraag  - //form/div id=vraagnummer open="open" geeft aan dat het een open vraag is
+                            invulgebied is //form/div/div/div/div/div/div/textarea
+        2. Kijken of vraagnummer in de dict voorkomt
+            ja: 
+                check soort waarde:
+                    als tekst: zoek dat antwoordlabel op, vul dat antwoord in*
+                    als meerdere nummers:
+                        controleer of vraag idd een MR vraag is:
+                            ja: vul waardes in
+                            nee: raise error, schrijf naar log met inlog, vraagnummer en geprobeerd antwoord,
+                                en sluit browser af
+                    als gewoon nummer:            
+                        vul waarde in*
+            nee: random waarde invullen
+
+            *voor al het invullen geldt: probeer in te vullen, als niet lukt dan raise error en 
+            schrijf naar log met login, vraagnummer, antwoordpoging en sluit browser af.

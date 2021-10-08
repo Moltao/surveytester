@@ -2,6 +2,103 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import csv
 import random
+from pathlib import Path
+
+driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+
+#bestand ophalen
+def get_testfile(path):
+    """Haalt het bestand met testscenario's op.
+
+    Parameters
+    ----------
+    path: str
+    Pad naar het csv bestand met de testscenario's
+
+    Returns
+    ----------
+    list of dicts
+    Geeft een lijst van dicts terug, waarbij iedere dict
+    een regel uit de csv is    
+    
+    """
+    if path != "":
+        pad = Path(path)
+        with open(pad, encoding='utf-8-sig') as infile:
+            csv_reader = csv.DictReader(infile, delimiter=";", )
+            scenarios = list(csv_reader)
+
+            return scenarios 
+    else:
+        print("Geen bestand opgegeven!")
+        return None
+       
+
+def inloggen(url, login):
+    """Logt in bij survey via een selenium browser
+
+    Parameters
+    ----------
+    url: str
+        url naar een survey in de Crowdtech tool
+    login: str
+        email-adres waarmee ingelogd wordt op de survey
+
+    Returns
+    ----------
+    Geen returns, logt in op de survey
+
+    """
+    driver.get(url)
+    driver.implicitly_wait(10)
+    user = driver.find_element_by_xpath('//*[@id="login-email"]')
+    user.send_keys(login)
+    driver.find_element_by_id("login-button").click()
+
+
+def vraag_antwoord(vraagnummer, antwoord):
+    #verwacht een key:value set van een dict als input
+    driver.find_element_by_id(f"{vraagnummer}_checkradio-answer-label-{antwoord}").click()
+    driver.find_element_by_id("button-next-nav").click()
+
+
+def get_q_id():
+    #vraagnummer achterhalen vanuit survey
+    element = driver.find_element_by_xpath("//form/div")
+    vraagid = element.get_attribute("id")
+
+    return vraagid
+
+def hasXpath(xpath):
+    try:
+        driver.find_element_by_xpath(xpath)
+        return True
+    except:
+        return False
+
+
+
+def get_q_type():
+    #vraagtype achterhalen
+    if hasXpath("//form/div[@table]"):
+        vraagtype = 'tabel'
+    elif hasXpath("//form/div[@open]"):
+        vraagtype = 'open'
+    elif hasXpath('//form/div/div/div[1][@data-answer-type="Checkbox"]'):
+        vraagtype = 'mr'
+    elif hasXpath('//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
+        vraagtype = 'sr'
+
+    return None
+
+
+
+
+
+
+
+
+
 
 #get test scenarios
 with open("C:\Python projects\Survey testbot\scenarios.csv", encoding='utf-8-sig') as infile:
@@ -10,24 +107,10 @@ with open("C:\Python projects\Survey testbot\scenarios.csv", encoding='utf-8-sig
     print(tests)
 tests[0]
 
-driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+
 
 # driver.get("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ")
 # driver.implicitly_wait(10)
-
-
-def inloggen(url, login):
-    driver.get(url)
-    driver.implicitly_wait(10)
-    user = driver.find_element_by_xpath('//*[@id="login-email"]')
-    user.send_keys(login)
-    driver.find_element_by_id("login-button").click()
-
-def vraag_antwoord(vraagnummer, antwoord):
-    #verwacht een key:value set van een dict als input
-    driver.find_element_by_id(f"{vraagnummer}_checkradio-answer-label-{antwoord}").click()
-    driver.find_element_by_id("button-next-nav").click()
-
 
 
 """
@@ -38,8 +121,6 @@ en kijken of daar een waarde voor is. Zo ja, dan invullen, zo nee dan random inv
 """
 for schema in tests:
     for k,v in schema.items():
-        if k == 'login':
-            inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
         if k.startswith('question'):
             if len(v) == 0:
                 count_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
@@ -47,18 +128,13 @@ for schema in tests:
                 vraag_antwoord(k, random_antwoord)
             else:
                 vraag_antwoord(k,v)
+        elif k == 'login':
+            inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
 
 
 #checken vanuit survey ipv vanuit csv
 
-def get_q_id():
-    element = driver.find_element_by_xpath("//form/div")
-    vraagid = element.get_attribute("id")
 
-    return vraagid
-
-def get_q_type():
-    return None
 
 
 """
