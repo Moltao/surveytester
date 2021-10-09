@@ -12,6 +12,7 @@ methode:
             SR          - //form/div/div/div[1] data-answer-type="Radiobutton"
             MR          - //form/div/div/div[1] data-answer-type="Checkbox"
             Tabelvraag  - //form/div id=vraagnummer table="" geeft aan dat het een tabelvraag is
+                als tabelvraag: ook achterhalen hoeveel subvragen er zijn
             open vraag  - //form/div id=vraagnummer open="open" geeft aan dat het een open vraag is
                             invulgebied is //form/div/div/div/div/div/div/textarea
         2. Kijken of vraagnummer in de dict voorkomt
