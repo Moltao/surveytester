@@ -5,6 +5,8 @@ import random
 from pathlib import Path
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+testfile =  Path("C:\Python projects\Survey testbot\scenarios.csv")
+
 
 #bestand ophalen
 def get_testfile(path):
@@ -58,6 +60,7 @@ def inloggen(url, login):
 
 def vraag_antwoord(vraagnummer, antwoord):
     #verwacht een key:value set van een dict als input
+    #voert vraag in en klikt op volgende
     driver.find_element_by_id(f"{vraagnummer}_checkradio-answer-label-{antwoord}").click()
     driver.find_element_by_id("button-next-nav").click()
 
@@ -77,11 +80,11 @@ def hasXpath(xpath):
         return False
 
 
-
 def get_q_type():
     #vraagtype achterhalen
     if hasXpath("//form/div[@table]"):
         vraagtype = 'tabel'
+        subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
     elif hasXpath("//form/div[@open]"):
         vraagtype = 'open'
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Checkbox"]'):
@@ -89,7 +92,31 @@ def get_q_type():
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
         vraagtype = 'sr'
 
-    return None
+    if vraagtype == 'tabel':
+        return (vraagtype, subvragen)
+    else:
+        return vraagtype
+
+def lookup_qid(testdict, vraagid):
+    if vraagid in testdict:
+        antwoord = testdict.get(vraagid)
+        if antwoord == '':
+            return 'geen waarde gegeven!'
+        elif len(antwoord) == 1 and antwoord.isnumeric():
+            antwoordnummer = ('sr', antwoord)
+        elif len(antwoord) > 1 and antwoord.replace(',','').isnumeric():
+            #meerdere antwoorden, hoort bij MR vraag
+            antwoordnummer = ('mr', antwoord.split(','))
+        elif len(antwoord) > 1 and antwoord.lower().islower():
+            #antwoordlabel opgegeven
+            antwoordnummer = ('label', antwoord)
+    else:
+        antwoordnummer = ('random', '1')
+
+    return antwoordnummer
+
+lookup_qid(scenarios[0], 'question-3')
+    
 
 
 
