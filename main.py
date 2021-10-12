@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 import csv
 import random
 from pathlib import Path
+from .Vraagclass import vraag
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 testfile =  Path("C:\Python projects\Survey testbot\scenarios.csv")
@@ -52,7 +53,7 @@ def inloggen(url, login):
 
     """
     driver.get(url)
-    driver.implicitly_wait(10)
+    driver.implicitly_wait(0)
     user = driver.find_element_by_xpath('//*[@id="login-email"]')
     user.send_keys(login)
     driver.find_element_by_id("login-button").click()
@@ -73,11 +74,11 @@ def get_q_id():
     return vraagid
 
 def hasXpath(xpath):
-    try:
-        driver.find_element_by_xpath(xpath)
-        return True
-    except:
-        return False
+
+        if len (driver.find_elements_by_xpath(xpath)) > 0:
+            return True
+        else:
+            return False
 
 
 def get_q_type():
@@ -115,7 +116,21 @@ def lookup_qid(testdict, vraagid):
 
     return antwoordnummer
 
-lookup_qid(scenarios[0], 'question-3')
+
+
+def getvraag(driver):
+    #ophalen van pagina:
+    #vraagnummer
+    #vraagsoort
+    #aantal antwoorden + labels
+    #aantal subvragen
+    #escape of niet
+    vraagnummer = get_q_id()
+    vraagsoort = get_q_type()
+
+    return vraag(vraagnummer, vraagsoort)
+
+
     
 
 
