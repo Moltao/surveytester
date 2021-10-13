@@ -53,7 +53,7 @@ def inloggen(url, login):
 
     """
     driver.get(url)
-    driver.implicitly_wait(0)
+    driver.implicitly_wait(2)
     user = driver.find_element_by_xpath('//*[@id="login-email"]')
     user.send_keys(login)
     driver.find_element_by_id("login-button").click()
@@ -83,6 +83,7 @@ def hasXpath(xpath):
 
 def get_q_type():
     #vraagtype achterhalen
+    subvragen = 0
     if hasXpath("//form/div[@table]"):
         vraagtype = 'tabel'
         subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
@@ -93,10 +94,8 @@ def get_q_type():
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
         vraagtype = 'sr'
 
-    if vraagtype == 'tabel':
+    
         return (vraagtype, subvragen)
-    else:
-        return vraagtype
 
 def lookup_qid(testdict, vraagid):
     if vraagid in testdict:
@@ -116,19 +115,29 @@ def lookup_qid(testdict, vraagid):
 
     return antwoordnummer
 
+def get_antwoorden():
+    antwoorden ={}
+    surveyantwoorden = driver.find_elements_by_xpath("//form/div/div/div")
+    for x in surveyantwoorden:                                  
+        k = x.find_element_by_xpath('.//input').get_attribute('id')
+        k = k[k.rindex('-')+1:]
+        v = x.find_element_by_xpath('.//input').get_attribute('value')
+        antwoorden[k]=v
 
+    return antwoorden
 
 def getvraag(driver):
     #ophalen van pagina:
     #vraagnummer
     #vraagsoort
-    #aantal antwoorden + labels
     #aantal subvragen
+    #aantal antwoorden + labels
     #escape of niet
     vraagnummer = get_q_id()
     vraagsoort = get_q_type()
 
-    return vraag(vraagnummer, vraagsoort)
+
+    return vraag(vraagnummer, vraagsoort, subvragen)
 
 
     
@@ -151,7 +160,7 @@ tests[0]
 
 
 
-# driver.get("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ")
+driver.get("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ")
 # driver.implicitly_wait(10)
 
 
