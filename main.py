@@ -59,11 +59,17 @@ def inloggen(url, login):
     driver.find_element_by_id("login-button").click()
 
 
-def vraag_antwoord(vraagnummer, antwoord):
+def vraag_antwoord(vraagnummer, vraagsoort, antwoorden):
     #verwacht een key:value set van een dict als input
     #voert vraag in en klikt op volgende
-    driver.find_element_by_id(f"{vraagnummer}_checkradio-answer-label-{antwoord}").click()
-    driver.find_element_by_id("button-next-nav").click()
+    if vraagsoort == 'tabel':
+        pass
+    elif vraagsoort == 'sr':
+        driver.find_element_by_id(f"{vraagnummer}_checkradio-answer-label-{antwoord}").click()
+        driver.find_element_by_id("button-next-nav").click()
+    elif vraagsoort == 'mr':
+        for item in antwoorden:
+            pass
 
 
 def get_q_id():
@@ -83,19 +89,23 @@ def hasXpath(xpath):
 
 def get_q_type():
     #vraagtype achterhalen
-    subvragen = 0
     if hasXpath("//form/div[@table]"):
         vraagtype = 'tabel'
-        subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
     elif hasXpath("//form/div[@open]"):
         vraagtype = 'open'
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Checkbox"]'):
         vraagtype = 'mr'
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
         vraagtype = 'sr'
-
     
-        return (vraagtype, subvragen)
+    return vraagtype
+
+def get_subvragen():
+    if hasXpath("//form/div[@table]"):
+        subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
+    
+    return subvragen
+
 
 def lookup_qid(testdict, vraagid):
     if vraagid in testdict:
@@ -115,16 +125,28 @@ def lookup_qid(testdict, vraagid):
 
     return antwoordnummer
 
-def get_antwoorden():
+def get_antwoorden(vraagsoort):
     antwoorden ={}
-    surveyantwoorden = driver.find_elements_by_xpath("//form/div/div/div")
-    for x in surveyantwoorden:                                  
-        k = x.find_element_by_xpath('.//input').get_attribute('id')
-        k = k[k.rindex('-')+1:]
-        v = x.find_element_by_xpath('.//input').get_attribute('value')
-        antwoorden[k]=v
+
+    if vraagsoort == 'tabel':
+        surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[1]/div[@data-option-list=""]/div')
+        for x in surveyantwoorden:                                  
+            k = x.find_element_by_xpath('.//input').get_attribute('id')
+            k = k[k.rindex('-')+1:]
+            v = x.find_element_by_xpath('.//input').get_attribute('value')
+            antwoorden[k]=v        
+    else:
+        surveyantwoorden = driver.find_elements_by_xpath("//form/div/div/div")
+        for x in surveyantwoorden:                                  
+            k = x.find_element_by_xpath('.//input').get_attribute('id')
+            k = k[k.rindex('-')+1:]
+            v = x.find_element_by_xpath('.//input').get_attribute('value')
+            antwoorden[k]=v
 
     return antwoorden
+
+get_antwoorden(get_q_type())
+
 
 def getvraag(driver):
     #ophalen van pagina:
@@ -135,12 +157,16 @@ def getvraag(driver):
     #escape of niet
     vraagnummer = get_q_id()
     vraagsoort = get_q_type()
+    if vraagsoort == 'tabel':
+        subvragen = get_subvragen()
+    antwoorden = get_antwoorden(vraagsoort)
 
 
-    return vraag(vraagnummer, vraagsoort, subvragen)
+
+    return vraag(vraagnummer, vraagsoort, subvragen, antwoorden)
 
 
-    
+
 
 
 
