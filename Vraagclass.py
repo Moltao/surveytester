@@ -1,7 +1,10 @@
 
+from typing import Dict
+
+
 class vraag:
 
-    def __init__(self, vraagid, soort, antwoorden=5, subvragen=0, escape=False) -> None:
+    def __init__(self, vraagid, soort, subvragen=None, antwoorden=None, escape=False) -> None:
         self.vraagid = vraagid
         self.soort = soort
         self.antwoorden = antwoorden
