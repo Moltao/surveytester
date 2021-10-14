@@ -1,5 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import csv
 import random
 from pathlib import Path
@@ -59,18 +62,21 @@ def inloggen(url, login):
     driver.find_element_by_id("login-button").click()
 
 
-def vraag_antwoord(vraagnummer, vraagsoort, antwoorden):
-    #verwacht een key:value set van een dict als input
-    #voert vraag in en klikt op volgende
-    if vraagsoort == 'tabel':
+def invullen(vraag, gegeven_antwoorden):
+    
+    if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
+        for subvraag in vraag.subvragen:
+            driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-{gegeven_antwoorden[0]}")
+    elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
+        driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
+        
+    elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
+        for item in gegeven_antwoorden[1]:
+            driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
+    elif vraag.soort == 'open':
         pass
-    elif vraagsoort == 'sr':
-        driver.find_element_by_id(f"{vraagnummer}_checkradio-answer-label-{antwoord}").click()
-        driver.find_element_by_id("button-next-nav").click()
-    elif vraagsoort == 'mr':
-        for item in antwoorden:
-            pass
 
+    driver.find_element_by_id("button-next-nav").click()
 
 def get_q_id():
     #vraagnummer achterhalen vanuit survey
@@ -103,29 +109,49 @@ def get_q_type():
 def get_subvragen():
     if hasXpath("//form/div[@table]"):
         subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
+    else:
+        subvragen = None
     
     return subvragen
 
 
 def lookup_qid(testdict, vraagid):
+    """ Kijkt of de vraagid uit survey in het bestand met testscenario's staat.
+        Als dat zo is wordt geprobeerd de opgegeven waarde in te vullen.
+        Als de vraagid niet in het bestand staat wordt er een random antwoord gekozen.
+
+        Parameters
+        ----------
+        testdict: dict.  Gemaakt van een csv met testscenario's. Dit komt uit get_testfile()
+        vraagid: str. De vraagid van de huidige vraag in survey, opgehaalf door get_q_id()
+
+        Returns
+        ----------
+        antwoord: tuple(str, list).
+                        Type vraag uit de data, om te kunnen checken met type uit survey     
+                        Lijst van nummers van de antwoorden die gegeven moeten worden. 
+                        Als het om een sr gaat, is dit een lijst van 1
+
+    """
+
     if vraagid in testdict:
-        antwoord = testdict.get(vraagid)
-        if antwoord == '':
-            return 'geen waarde gegeven!'
-        elif len(antwoord) == 1 and antwoord.isnumeric():
-            antwoordnummer = ('sr', antwoord)
-        elif len(antwoord) > 1 and antwoord.replace(',','').isnumeric():
+        gegeven_antwoord = testdict.get(vraagid)
+        if gegeven_antwoord == '':
+            antwoordnummer = ('random', '1')
+        elif len(gegeven_antwoord) == 1 and gegeven_antwoord.isnumeric():
+            antwoordnummer = ('sr', gegeven_antwoord)
+        elif len(gegeven_antwoord) > 1 and gegeven_antwoord.replace(',','').isnumeric():
             #meerdere antwoorden, hoort bij MR vraag
-            antwoordnummer = ('mr', antwoord.split(','))
-        elif len(antwoord) > 1 and antwoord.lower().islower():
+            antwoordnummer = ('mr', gegeven_antwoord.split(','))
+        elif len(gegeven_antwoord) > 1 and gegeven_antwoord.lower().islower():
             #antwoordlabel opgegeven
-            antwoordnummer = ('label', antwoord)
+            antwoordnummer = ('label', gegeven_antwoord)
     else:
         antwoordnummer = ('random', '1')
 
     return antwoordnummer
 
-def get_antwoorden(vraagsoort):
+def get_antwoordopties(vraagsoort):
     antwoorden ={}
 
     if vraagsoort == 'tabel':
@@ -134,7 +160,9 @@ def get_antwoorden(vraagsoort):
             k = x.find_element_by_xpath('.//input').get_attribute('id')
             k = k[k.rindex('-')+1:]
             v = x.find_element_by_xpath('.//input').get_attribute('value')
-            antwoorden[k]=v        
+            antwoorden[k]=v
+    elif vraagsoort == 'open':
+        antwoorden = None      
     else:
         surveyantwoorden = driver.find_elements_by_xpath("//form/div/div/div")
         for x in surveyantwoorden:                                  
@@ -145,8 +173,15 @@ def get_antwoorden(vraagsoort):
 
     return antwoorden
 
-get_antwoorden(get_q_type())
+def get_open_escape(vraagsoort='open'):
+    if hasXpath('//div[@data-outerfield="true"]'):
+        escape = True
+    else:
+        escape = False
 
+    return escape    
+
+#get_antwoordopties(get_q_type())
 
 def getvraag(driver):
     #ophalen van pagina:
@@ -159,76 +194,24 @@ def getvraag(driver):
     vraagsoort = get_q_type()
     if vraagsoort == 'tabel':
         subvragen = get_subvragen()
-    antwoorden = get_antwoorden(vraagsoort)
+    else:
+        subvragen=None
+    antwoorden = get_antwoordopties(vraagsoort)
+    if vraagsoort == 'open':
+        escape = get_open_escape()
+    else:
+        escape=False
 
+    return vraag(vraagnummer, vraagsoort, subvragen, antwoorden, escape)
 
+bestand = get_testfile("C:\Python projects\Survey testbot\scenarios_v2.csv")
+inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['login'])
+bestand[0]['login']
 
-    return vraag(vraagnummer, vraagsoort, subvragen, antwoorden)
+v2 = getvraag(driver)
+answers = lookup_qid(bestand[0], v2.vraagid)
 
+invullen(v2, answers)
 
-
-
-
-
-
-
-
-
-
-
-
-#get test scenarios
-with open("C:\Python projects\Survey testbot\scenarios.csv", encoding='utf-8-sig') as infile:
-    csv_reader = csv.DictReader(infile, delimiter=";", )
-    tests = list(csv_reader)
-    print(tests)
-tests[0]
-
-
-
-driver.get("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ")
-# driver.implicitly_wait(10)
-
-
-"""
-Dit gedeelte gaat alle regels af in de csv en vult de waarde in.
-Waarchijnlijk efficienter om andersom te werken en het vraagnummer op te halen uit survey
-en kijken of daar een waarde voor is. Zo ja, dan invullen, zo nee dan random invullen.
-
-"""
-for schema in tests:
-    for k,v in schema.items():
-        if k.startswith('question'):
-            if len(v) == 0:
-                count_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
-                random_antwoord = random.randint(1, count_divs)
-                vraag_antwoord(k, random_antwoord)
-            else:
-                vraag_antwoord(k,v)
-        elif k == 'login':
-            inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
-
-
-#checken vanuit survey ipv vanuit csv
-
-
-
-
-"""
-    antwoord = f"question-1_checkradio-answer-label-{tests[0]['V1']}"
-    driver.find_element_by_id(f"question-1_checkradio-answer-label-{tests[0]['V1']}").click()
-    driver.find_element_by_id("button-next-nav").click()
-    driver.find_element_by_id("question-2_checkradio-answer-label-4").click()
-    driver.find_element_by_id("button-next-nav").click()
-
-    driver.find_element_by_id("question-28_sq-1_checkradio-answer-label-1").click()
-    driver.find_element_by_id("question-28_sq-2_checkradio-answer-label-1").click()
-    driver.find_element_by_id("question-28_sq-3_checkradio-answer-label-5").click()
-    driver.find_element_by_id("button-next-nav").click()
-
-    print(driver.title) 
-
-"""
-
-count_of_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
-count_of_divs
+v2element = driver.find_element_by_id('question-2_checkradio-answer-label-1')
+v2element.click()

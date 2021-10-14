@@ -1,0 +1,56 @@
+
+
+#get test scenarios
+with open("C:\Python projects\Survey testbot\scenarios.csv", encoding='utf-8-sig') as infile:
+    csv_reader = csv.DictReader(infile, delimiter=";", )
+    tests = list(csv_reader)
+    print(tests)
+tests[0]
+
+
+
+
+
+
+"""
+Dit gedeelte gaat alle regels af in de csv en vult de waarde in.
+Waarchijnlijk efficienter om andersom te werken en het vraagnummer op te halen uit survey
+en kijken of daar een waarde voor is. Zo ja, dan invullen, zo nee dan random invullen.
+
+"""
+for schema in tests:
+    for k,v in schema.items():
+        if k.startswith('question'):
+            if len(v) == 0:
+                count_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
+                random_antwoord = random.randint(1, count_divs)
+                vraag_antwoord(k, random_antwoord)
+            else:
+                vraag_antwoord(k,v)
+        elif k == 'login':
+            inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
+
+
+#checken vanuit survey ipv vanuit csv
+
+
+
+
+"""
+    antwoord = f"question-1_checkradio-answer-label-{tests[0]['V1']}"
+    driver.find_element_by_id(f"question-1_checkradio-answer-label-{tests[0]['V1']}").click()
+    driver.find_element_by_id("button-next-nav").click()
+    driver.find_element_by_id("question-2_checkradio-answer-label-4").click()
+    driver.find_element_by_id("button-next-nav").click()
+
+    driver.find_element_by_id("question-28_sq-1_checkradio-answer-label-1").click()
+    driver.find_element_by_id("question-28_sq-2_checkradio-answer-label-1").click()
+    driver.find_element_by_id("question-28_sq-3_checkradio-answer-label-5").click()
+    driver.find_element_by_id("button-next-nav").click()
+
+    print(driver.title) 
+
+"""
+
+count_of_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
+count_of_divs
