@@ -1,4 +1,3 @@
-from os import scandir
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -7,10 +6,10 @@ from selenium.webdriver.support import expected_conditions as EC
 import csv
 import random
 from pathlib import Path
-from .Vraagclass import vraag
+#from .Vraagclass import vraag
 
-driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
-testfile =  Path("C:\Python projects\Survey testbot\scenarios.csv")
+# driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+# testfile =  Path("C:\Python projects\Survey testbot\scenarios.csv")
 
 
 #bestand ophalen
@@ -68,7 +67,6 @@ def invullen(vraag, gegeven_antwoorden):
     if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
         for subvraag in range(1, vraag.subvragen+1):
             #vraag.vraagid = vraag.vraagid + '-' + subvraag
-            print(subvraag)
             antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + str(subvraag)]
             driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
     elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
@@ -99,14 +97,16 @@ def hasXpath(xpath):
 
 def get_q_type():
     #vraagtype achterhalen
-    if hasXpath("//form/div[@table]"):
+    if hasXpath('//form/div[@table]'):
         vraagtype = 'tabel'
-    elif hasXpath("//form/div[@open]"):
+    elif hasXpath('//form/div[@open]'):
         vraagtype = 'open'
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Checkbox"]'):
         vraagtype = 'mr'
     elif hasXpath('//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
         vraagtype = 'sr'
+    elif hasXpath('//form/div[@empty]'):
+        vraagtype = 'tussen'
     
     return vraagtype
 
@@ -196,6 +196,25 @@ def get_open_escape(vraagsoort='open'):
 
 #get_antwoordopties(get_q_type())
 
+class vraag:
+
+    def __init__(self, vraagid, soort, subvragen=None, antwoorden=None, escape=False) -> None:
+        self.vraagid = vraagid
+        self.soort = soort
+        self.antwoorden = antwoorden
+        self.subvragen = subvragen
+        self.escape = escape
+
+    def __str__(self) -> str:
+        if self.soort == "open":
+            metzonder = 'met' if self.escape else 'zonder'
+            return f"open vraag {metzonder} escape"
+        elif self.soort == "tabel":
+            return f"tabelvraag met {self.subvragen} subvragen"
+        else:
+            return f"{self.soort} vraag met {len(self.antwoorden)} antwoorden"
+
+
 def getvraag(driver):
     #ophalen van pagina:
     #vraagnummer
@@ -217,32 +236,45 @@ def getvraag(driver):
 
     return vraag(vraagid, vraagsoort, subvragen, antwoorden, escape)
 
-bestand = get_testfile("C:\Python projects\Survey testbot\scenarios_v2.csv")
-inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[1]['login'])
+# bestand = get_testfile("C:\Python projects\Survey testbot\scenarios_v2.csv")
+# inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[1]['login'])
 
 
-v1 = getvraag(driver)
-answers = lookup_qid(bestand[1], v1.vraagid)
+# v1 = getvraag(driver)
+# answers = lookup_qid(bestand[1], v1.vraagid)
 
-invullen(v1, answers)
+# invullen(v1, answers)
 
 # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
-driver.implicitly_wait(1)
+driver.implicitly_wait(0)
 bestand = get_testfile("C:\Python projects\Survey testbot\scenarios_v2.csv")
+
+
+inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['login'])
+
 
 for scenario in bestand:
     inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
-    vx = getvraag(driver)
-    invullen(vx, lookup_qid(scenario,vx))
+    endpage = hasXpath('html/body/div/div[@endpage=""]')
+    while endpage == False:
+        vx = getvraag(driver)
+        invullen(vx, lookup_qid(scenario,vx))
+        endpage = hasXpath('html/body/div/div[@endpage=""]')
+
 
 vx = getvraag(driver)
 invullen(vx, lookup_qid(bestand[1],vx))
-lookup_qid(bestand[1],vx)
+# lookup_qid(bestand[1],vx)
 
-for scenario in bestand:
-    print(scenario)
+hasXpath('html/body/div/div[@endpage=""]')
+driver.find_element_by_id("language-switcher-dropdown").click()
+testdict = {el.text: el for el in driver.find_elements_by_xpath('//ul[@role="listbox"]/li')}
+driver.find_element_by_id("button-save").click()
+
+# for scenario in bestand:
+#     print(scenario)
 
 
 # for schema in tests:
@@ -256,16 +288,3 @@ for scenario in bestand:
 #                 vraag_antwoord(k,v)
 #         elif k == 'login':
 #             inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
-
-
-v2element = driver.find_element_by_id('question-2_checkradio-answer-label-1')
-v2element.click()
-
-driver.find_elements_by_css_selector('[table=""]')
-driver.find_elements_by_xpath("//form/div[@table]")
-getvraag(driver)
-driver.find_element_by_id("question-4_sq-1_checkradio-answer-label-1").click()
-lookup_qid(bestand[0], v4)
-
-for subvraag in range(1, v4.subvragen+1):
-    driver.find_element_by_id(f"{v4.vraagid}_sq-{subvraag}_checkradio-answer-label-1").click()

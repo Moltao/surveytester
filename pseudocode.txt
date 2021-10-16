@@ -30,3 +30,6 @@ methode:
 
             *voor al het invullen geldt: probeer in te vullen, als niet lukt dan raise error en 
             schrijf naar log met login, vraagnummer, antwoordpoging en sluit browser af.
+
+#to do:
+error handling. Als een gegeven antwoord niet gevonden kan worden moet dit gelogd worden en de browser afgesloten
