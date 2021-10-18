@@ -156,6 +156,8 @@ def get_q_type(driver):
         vraagtype = 'sr'
     elif hasXpath(driver, '//form/div[@empty]'):
         vraagtype = 'tussen'
+    else:
+        vraagtype = 'unknown'
     
     return vraagtype
 
