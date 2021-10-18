@@ -40,7 +40,7 @@ def get_testfile(path):
         return None
        
 
-def inloggen(url, login):
+def inloggen(driver, url, login):
     """Logt in bij survey via een selenium browser
 
     Parameters
@@ -62,7 +62,21 @@ def inloggen(url, login):
     driver.find_element_by_id("login-button").click()
 
 
-def invullen(vraag, gegeven_antwoorden):
+def invullen(driver, vraag, gegeven_antwoorden):
+    """Vult de vraag in bij survey. Tikt de opties aan en klikt op volgende.
+
+    Parameters
+    ----------
+    vraag: vraagobject
+        aangemaakt door getvraag()
+    gegeven_antwoorden: tuple
+        de antwoorden uit het bestand met testscenario's zoals aangemaakt door lookup_qid()
+     
+    Returns
+    ----------
+    geen return. Vinkt de juiste opties aan en klikt op volgende.
+
+    """
     
     if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
         for subvraag in range(1, vraag.subvragen+1):
@@ -71,46 +85,92 @@ def invullen(vraag, gegeven_antwoorden):
             driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
     elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
         driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
-        
     elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
         for item in gegeven_antwoorden[1]:
             driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
     elif vraag.soort == 'open':
         driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1").send_keys("test test test")
+    elif vraag.soort == 'tussen':
+        pass
 
     driver.find_element_by_id("button-next-nav").click()
 
-def get_q_id():
+def get_q_id(driver):
+    """Haalt het id van de vraag op uit survey
+    
+    Parameters
+    ----------
+    driver: selenium webdriver
+
+    Returns
+    ----------
+    vraagid: str. met 'question-1' format van vraagid
+    
+    """
     #vraagnummer achterhalen vanuit survey
     element = driver.find_element_by_xpath("//form/div")
     vraagid = element.get_attribute("id")
 
     return vraagid
 
-def hasXpath(xpath):
+def hasXpath(driver, xpath):
+    """Conrtoleert of een xpath element bestaat. Geeft een lijst van alle gevonden elementen. 
+        Als er geen elementen zijn is de lijst 0 items.
+    
+    Parameters
+    ----------
+    xpath: str met xpath erin
 
-        if len(driver.find_elements_by_xpath(xpath)) > 0:
-            return True
-        else:
-            return False
+    Returns
+    ----------
+    True als lijst met elementen groter is dan 0
+    False als lijst met elementen 0 is
+    
+    """
+    if len(driver.find_elements_by_xpath(xpath)) > 0:
+        return True
+    else:
+        return False
 
 
-def get_q_type():
+def get_q_type(driver):
+    """Haalt het vraagtype op van de getoonde vraag in Survey
+    
+    Parameters
+    ----------
+    driver: selenium webdriver
+
+    Returns
+    ----------
+    vraagtype: str. met vraagtype
+    
+    """
     #vraagtype achterhalen
-    if hasXpath('//form/div[@table]'):
+    if hasXpath(driver, '//form/div[@table]'):
         vraagtype = 'tabel'
-    elif hasXpath('//form/div[@open]'):
+    elif hasXpath(driver, '//form/div[@open]'):
         vraagtype = 'open'
-    elif hasXpath('//form/div/div/div[1][@data-answer-type="Checkbox"]'):
+    elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Checkbox"]'):
         vraagtype = 'mr'
-    elif hasXpath('//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
+    elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
         vraagtype = 'sr'
-    elif hasXpath('//form/div[@empty]'):
+    elif hasXpath(driver, '//form/div[@empty]'):
         vraagtype = 'tussen'
     
     return vraagtype
 
-def get_subvragen():
+def get_subvragen(driver):
+    """Kijkt hoeveel subvragen er zijn bij een tabelvraag
+    
+    Parameters
+    ----------
+    driver: selenium webdriver
+
+    Returns
+    ----------
+    subvragen: int of None
+    
+    """
     if hasXpath("//form/div[@table]"):
         subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
     else:
@@ -124,17 +184,18 @@ def lookup_qid(testdict, vraag):
         Als dat zo is wordt geprobeerd de opgegeven waarde in te vullen.
         Als de vraagid niet in het bestand staat wordt er een random antwoord gekozen.
 
-        Parameters
-        ----------
-        testdict: dict.  Gemaakt van een csv met testscenario's. Dit komt uit get_testfile()
-        vraag: vraagobject. Vraagobject opgehaald door getvraag()
+    Parameters
+    ----------
+    testdict: dict.  Gemaakt van een csv met testscenario's. Dit komt uit get_testfile()
+    vraag: vraagobject. Vraagobject opgehaald door getvraag()
 
-        Returns
-        ----------
-        antwoord: tuple(str, list).
-                        Type vraag uit de data, om te kunnen checken met type uit survey     
-                        Lijst van nummers van de antwoorden die gegeven moeten worden. 
-                        Als het om een sr gaat, is dit een lijst van 1
+    Returns
+    ----------
+    antwoord: tuple(str, list).
+        als tabelvraag: tuple (str, dict)
+                    Type vraag uit de data, om te kunnen checken met type uit survey     
+                    Lijst van nummers van de antwoorden die gegeven moeten worden. 
+                    Als het om een sr gaat, is dit een lijst van 1
 
     """
     if vraag.soort == 'tabel':
@@ -164,7 +225,20 @@ def lookup_qid(testdict, vraag):
 
     return antwoordnummer
 
-def get_antwoordopties(vraagsoort):
+def get_antwoordopties(driver, vraagsoort):
+    """Antwoordlabels achterhalen uit survey. Dit zijn de teksten van de antwoordopties zoals
+    "Helemaal mee eens".
+    
+    Parameters
+    ----------
+    driver: selenium webdriver
+    vraagsoort: str van vraagobject.
+
+    Returns
+    ----------
+    antwoorden: dict met k,v = vraagnummer, label
+    
+    """
     antwoorden ={}
 
     if vraagsoort == 'tabel':
@@ -175,9 +249,11 @@ def get_antwoordopties(vraagsoort):
             v = x.find_element_by_xpath('.//input').get_attribute('value')
             antwoorden[k]=v
     elif vraagsoort == 'open':
-        antwoorden = None      
+        antwoorden = None
+    elif vraagsoort == 'tussen':
+        antwoorden = None
     else:
-        surveyantwoorden = driver.find_elements_by_xpath("//form/div/div/div")
+        surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[@data-answer=""]')
         for x in surveyantwoorden:                                  
             k = x.find_element_by_xpath('.//input').get_attribute('id')
             k = k[k.rindex('-')+1:]
@@ -186,9 +262,25 @@ def get_antwoordopties(vraagsoort):
 
     return antwoorden
 
-def get_open_escape(vraagsoort='open'):
-    if hasXpath('//div[@data-outerfield="true"]'):
-        escape = True
+def get_open_escape(driver, vraag):
+    """ Kijkt of er een escape optie is voor een open vraag zodat 
+        deze aangevinkt kan worden als dat gewenst is
+    
+    Parameters
+    ----------
+    driver: selenium webdriver
+    vraag:  vraagobject
+
+    Returns
+    ----------
+    escape: bool. True als de escape er is, False als deze er niet is of als de vraag geen open vraag is.
+    
+    """
+    if vraag.soort =='open':
+        if hasXpath(driver, '//div[@data-outerfield="true"]'):
+            escape = True
+        else:
+            escape = False
     else:
         escape = False
 
@@ -216,75 +308,31 @@ class vraag:
 
 
 def getvraag(driver):
-    #ophalen van pagina:
-    #vraagnummer
-    #vraagsoort
-    #aantal subvragen
-    #aantal antwoorden + labels
-    #escape of niet
-    vraagid = get_q_id()
-    vraagsoort = get_q_type()
+    """ Haalt alle belangrijke vraaggegevens op uit Survey. Dit zijn
+        vraagnummer, vraagsoort, aantal subvragen, aantal antwoorden + labels, escape aanwezig of niet
+        bij open antwoord.
+    
+    Parameters
+    ----------
+    driver = selenium webdriver
+
+    Returns
+    ----------
+    vraag: vraagobject
+    
+    """
+    vraagid = get_q_id(driver)
+    vraagsoort = get_q_type(driver)
     if vraagsoort == 'tabel':
-        subvragen = get_subvragen()
+        subvragen = get_subvragen(driver)
     else:
         subvragen=None
-    antwoorden = get_antwoordopties(vraagsoort)
+    antwoorden = get_antwoordopties(driver, vraagsoort)
     if vraagsoort == 'open':
-        escape = get_open_escape()
+        escape = get_open_escape(driver)
     else:
         escape=False
 
     return vraag(vraagid, vraagsoort, subvragen, antwoorden, escape)
 
-# bestand = get_testfile("C:\Python projects\Survey testbot\scenarios_v2.csv")
-# inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[1]['login'])
 
-
-# v1 = getvraag(driver)
-# answers = lookup_qid(bestand[1], v1.vraagid)
-
-# invullen(v1, answers)
-
-# # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
-driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
-driver.implicitly_wait(0)
-bestand = get_testfile("C:\Python projects\Survey testbot\scenarios_v2.csv")
-
-
-inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['login'])
-
-
-for scenario in bestand:
-    inloggen('https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
-    endpage = hasXpath('html/body/div/div[@endpage=""]')
-    while endpage == False:
-        vx = getvraag(driver)
-        invullen(vx, lookup_qid(scenario,vx))
-        endpage = hasXpath('html/body/div/div[@endpage=""]')
-
-
-vx = getvraag(driver)
-invullen(vx, lookup_qid(bestand[1],vx))
-# lookup_qid(bestand[1],vx)
-
-hasXpath('html/body/div/div[@endpage=""]')
-driver.find_element_by_id("language-switcher-dropdown").click()
-testdict = {el.text: el for el in driver.find_elements_by_xpath('//ul[@role="listbox"]/li')}
-driver.find_element_by_id("button-save").click()
-
-# for scenario in bestand:
-#     print(scenario)
-
-
-# for schema in tests:
-#     for k,v in schema.items():
-#         if k.startswith('question'):
-#             if len(v) == 0:
-#                 count_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
-#                 random_antwoord = random.randint(1, count_divs)
-#                 vraag_antwoord(k, random_antwoord)
-#             else:
-#                 vraag_antwoord(k,v)
-#         elif k == 'login':
-#             inloggen("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ",v)
