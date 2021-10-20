@@ -77,12 +77,22 @@ def invullen(driver, vraag, gegeven_antwoorden):
     geen return. Vinkt de juiste opties aan en klikt op volgende.
 
     """
-    
+    if gegeven_antwoorden[0] == 'random':
+        if len(vraag.antwoorden) > 0:
+            gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden))))
+        else:
+            gegeven_antwoorden = (vraag.soort, '1')
+
     if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
         for subvraag in range(1, vraag.subvragen+1):
             #vraag.vraagid = vraag.vraagid + '-' + subvraag
             antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + str(subvraag)]
             driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
+    elif vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
+        for veld in range(1, vraag.velden+1):
+            vraagid = vraag.vraagid + '-answer-' + str(veld)
+            antwoord = gegeven_antwoorden[1][vraagid]
+            driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
     elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
         driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
     elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
@@ -94,6 +104,21 @@ def invullen(driver, vraag, gegeven_antwoorden):
         pass
 
     driver.find_element_by_id("button-next-nav").click()
+
+def invulvelden_invullen(driver, vraag, gegeven_antwoorden):
+    """ Invulveldenvraag invullen. Deze werkt anders dan de standaardvragen
+        dus een aparte functie voor gemaakt.
+        Vult het gegeven antwoord in en anders vult het een random antwoord in.    
+    
+    """
+    #aantal invulvelden ophalen
+    if vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
+        for veld in range(1, vraag.velden+1):
+            vraagid = vraag.vraagid + '_answer' + str(veld)
+            antwoord = gegeven_antwoorden[1][vraagid]
+            driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
+
+
 
 def get_q_id(driver):
     """Haalt het id van de vraag op uit survey
@@ -175,13 +200,20 @@ def get_subvragen(driver):
     subvragen: int of None
     
     """
-    if hasXpath("//form/div[@table]"):
+    if hasXpath(driver, "//form/div[@table]"):
         subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
     else:
         subvragen = None
     
     return subvragen
 
+def get_velden(driver):
+    """ Aantal invulvelden ophalen van een invulveldenvraag
+    
+    """
+    velden = len(driver.find_elements_by_css_selector('div[id^="question-1_answer-"'))
+
+    return velden
 
 def lookup_qid(testdict, vraag):
     """ Kijkt of de vraagid uit survey in het bestand met testscenario's staat.
@@ -210,7 +242,16 @@ def lookup_qid(testdict, vraag):
                 gegeven_antwoord[sub] = testdict[sub]        
             else:
                 gegeven_antwoord[sub] = str(random.randint(1, len(vraag.antwoorden)))
-        antwoordnummer = ('tabel', gegeven_antwoord)   
+        antwoordnummer = ('tabel', gegeven_antwoord)
+    elif vraag.soort == 'invulvelden':
+        gegeven_antwoord = {}
+        velden = [vraag.vraagid + '-answer-' + str(x) for x in range(1, vraag.velden + 1)]
+        for veld in velden:
+            if veld in testdict:
+                gegeven_antwoord[veld] = testdict[veld]
+            else:
+                gegeven_antwoord[veld] = 'tekst tekst tekst'
+        antwoordnummer = ('invulvelden', gegeven_antwoord)  
     else:
         if vraag.vraagid in testdict:
             gegeven_antwoord = testdict.get(vraag.vraagid)
@@ -253,16 +294,16 @@ def get_antwoordopties(driver, vraagsoort):
             v = x.find_element_by_xpath('.//input').get_attribute('value')
             antwoorden[k]=v
     elif vraagsoort == 'open':
-        antwoorden = None
+        antwoorden = {}
     elif vraagsoort == 'tussen':
-        antwoorden = None
+        antwoorden = {}
     elif vraagsoort == 'invulvelden':
         surveyantwoorden = driver.find_elements_by_css_selector('div[id^="question-1_answer-"')
         for x in surveyantwoorden:
             k = x.find_element_by_css_selector('label').get_attribute('id')
             k = k[k.rindex('-')+1:]
             v = x.find_element_by_css_selector('label span[data-label=""]').text
-        pass
+            antwoorden[k]=v
     else:
         surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[@data-answer=""]')
         for x in surveyantwoorden:                                  
@@ -273,7 +314,7 @@ def get_antwoordopties(driver, vraagsoort):
 
     return antwoorden
 
-def get_open_escape(driver, vraag):
+def get_open_escape(driver, vraagsoort):
     """ Kijkt of er een escape optie is voor een open vraag zodat 
         deze aangevinkt kan worden als dat gewenst is
     
@@ -287,7 +328,7 @@ def get_open_escape(driver, vraag):
     escape: bool. True als de escape er is, False als deze er niet is of als de vraag geen open vraag is.
     
     """
-    if vraag.soort =='open':
+    if vraagsoort =='open':
         if hasXpath(driver, '//div[@data-outerfield="true"]'):
             escape = True
         else:
@@ -301,11 +342,12 @@ def get_open_escape(driver, vraag):
 
 class vraag:
 
-    def __init__(self, vraagid, soort, subvragen=None, antwoorden=None, escape=False) -> None:
+    def __init__(self, vraagid, soort, subvragen=None, velden=None ,antwoorden=None, escape=False) -> None:
         self.vraagid = vraagid
         self.soort = soort
         self.antwoorden = antwoorden
         self.subvragen = subvragen
+        self.velden = velden
         self.escape = escape
 
     def __str__(self) -> str:
@@ -337,13 +379,41 @@ def getvraag(driver):
     if vraagsoort == 'tabel':
         subvragen = get_subvragen(driver)
     else:
-        subvragen=None
+        subvragen = 0
+
     antwoorden = get_antwoordopties(driver, vraagsoort)
-    if vraagsoort == 'open':
-        escape = get_open_escape(driver)
+
+    if vraagsoort == 'invulvelden':
+        velden = get_velden(driver)
     else:
-        escape=False
+        velden = 0
 
-    return vraag(vraagid, vraagsoort, subvragen, antwoorden, escape)
+    if vraagsoort == 'open':
+        escape = get_open_escape(driver, vraagsoort)
+    else:
+        escape = False
+
+    return vraag(vraagid, vraagsoort, subvragen, velden, antwoorden, escape)
 
 
+driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+driver.implicitly_wait(0)
+bestand = get_testfile(r"C:\Python projects\Survey testbot\scenarios_v2.csv")
+
+
+for scenario in bestand:
+    inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+    endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
+    while endpage == False:
+        vx = getvraag(driver)
+        invullen(driver, vx, lookup_qid(scenario,vx))
+        endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
+
+
+# inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+# vx = getvraag(driver)
+# antwoorden = lookup_qid(bestand[0], vx)
+# antwoorden
+# invullen(driver, vx, lookup_qid(bestand[0], vx))
+
+# bestand[0]

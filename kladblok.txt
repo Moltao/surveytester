@@ -54,3 +54,7 @@ for schema in tests:
 
 count_of_divs = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
 count_of_divs
+
+                                                        0]['login'])
+driver.find_element_by_id("language-switcher").click()
+driver.find_element_by_id("language-switcher-dropdown").click()

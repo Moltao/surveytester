@@ -14,16 +14,39 @@ from selenium import webdriver
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(0)
-bestand = get_testfile("C:\Python projects\Survey testbot\\test_nse.csv")
+bestand = get_testfile(r"C:\Python projects\Survey testbot\scenarios_v2.csv")
+
+for scenario in bestand:
+    inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+    endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
+    while endpage == False:
+        vx = getvraag(driver)
+        invullen(driver, vx, lookup_qid(scenario,vx))
+        endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
+
+
+
+inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+vx = getvraag(driver)
+antwoorden = lookup_qid(bestand[0], vx)
+antwoorden
+invullen(driver, vx, lookup_qid(bestand[0], vx))
+
 
 #invulveldenvraag verwerken
 inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['login'])
 driver.find_element_by_id("question-1_label-1")
-veld1 = driver.find_element_by_css_selector('div[id^="question-1_answer-"')
+len(driver.find_elements_by_css_selector('div[id^="question-1_answer-"'))
+veld1 = driver.find_elements_by_css_selector('div[id^="question-1_answer-"')
 veld1.find_element_by_css_selector('label span[data-label=""]').text
 label = veld1.find_element_by_css_selector('label').get_attribute('id')
 label = label[label.rindex('-')+1:]
 label
+
+
+velden = driver.find_elements_by_css_selector('div[id^="question-1_answer-"')
+
+
 
                 k = x.find_element_by_css_selector('label').get_attribute('id')
                 k = k[k.rindex('-')+1:]
@@ -35,17 +58,13 @@ get_q_type(driver)
 
 
 
-for scenario in bestand:
-    inloggen(driver, 'http://q.crowdtech.com/NfxaNcf1pUCwUct7X-SlMA',scenario['login'])
-    endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
-    while endpage == False:
-        vx = getvraag(driver)
-        invullen(driver, vx, lookup_qid(scenario,vx))
-        endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
 
 
 vx = getvraag(driver)
-invullen(vx, lookup_qid(bestand[1],vx))
+antwoorden = lookup_qid(bestand[1], vx)
+antwoorden
+invullen(driver, vx, antwoorden)
+
 # lookup_qid(bestand[1],vx)
 
 hasXpath('html/body/div/div[@endpage=""]')
