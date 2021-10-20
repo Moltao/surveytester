@@ -156,6 +156,8 @@ def get_q_type(driver):
         vraagtype = 'sr'
     elif hasXpath(driver, '//form/div[@empty]'):
         vraagtype = 'tussen'
+    elif hasXpath(driver, '//form/div[@fields]'):
+        vraagtype = 'invulvelden'
     else:
         vraagtype = 'unknown'
     
@@ -238,7 +240,7 @@ def get_antwoordopties(driver, vraagsoort):
 
     Returns
     ----------
-    antwoorden: dict met k,v = vraagnummer, label
+    antwoorden: dict met k,v = antwoornummer, label
     
     """
     antwoorden ={}
@@ -254,6 +256,13 @@ def get_antwoordopties(driver, vraagsoort):
         antwoorden = None
     elif vraagsoort == 'tussen':
         antwoorden = None
+    elif vraagsoort == 'invulvelden':
+        surveyantwoorden = driver.find_elements_by_css_selector('div[id^="question-1_answer-"')
+        for x in surveyantwoorden:
+            k = x.find_element_by_css_selector('label').get_attribute('id')
+            k = k[k.rindex('-')+1:]
+            v = x.find_element_by_css_selector('label span[data-label=""]').text
+        pass
     else:
         surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[@data-answer=""]')
         for x in surveyantwoorden:                                  
