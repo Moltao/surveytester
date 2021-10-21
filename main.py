@@ -84,22 +84,26 @@ def invullen(driver, vraag, gegeven_antwoorden):
             gegeven_antwoorden = (vraag.soort, '1')
 
     if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
-        for subvraag in range(1, vraag.subvragen+1):
-            #vraag.vraagid = vraag.vraagid + '-' + subvraag
-            antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + str(subvraag)]
+        for subvraag in vraag.subvragen:
+            antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + subvraag]
             driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
+    
     elif vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
         for veld in range(1, vraag.velden+1):
             vraagid = vraag.vraagid + '-answer-' + str(veld)
             antwoord = gegeven_antwoorden[1][vraagid]
             driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
+    
     elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
         driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
+    
     elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
         for item in gegeven_antwoorden[1]:
             driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
+    
     elif vraag.soort == 'open':
         driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1").send_keys("test test test")
+    
     elif vraag.soort == 'tussen':
         pass
 
@@ -173,12 +177,12 @@ def get_q_type(driver):
     #vraagtype achterhalen
     if hasXpath(driver, '//form/div[@table]'):
         vraagtype = 'tabel'
+    elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
+        vraagtype = 'sr'
     elif hasXpath(driver, '//form/div[@open]'):
         vraagtype = 'open'
     elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Checkbox"]'):
         vraagtype = 'mr'
-    elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
-        vraagtype = 'sr'
     elif hasXpath(driver, '//form/div[@empty]'):
         vraagtype = 'tussen'
     elif hasXpath(driver, '//form/div[@fields]'):
@@ -197,21 +201,23 @@ def get_subvragen(driver):
 
     Returns
     ----------
-    subvragen: int of None
+    subvragen: list van de elementen van de subvragen
     
     """
     if hasXpath(driver, "//form/div[@table]"):
-        subvragen = len(driver.find_elements_by_xpath("/html/body/div/div/main/form/div/div/div"))
+        subs = driver.find_elements_by_css_selector('div[id^=fold]')
+        subvragen = [x.get_attribute('id')[x.get_attribute('id').rindex('-')+1:] for x in subs]
+        #subvragen = driver.find_elements_by_css_selector('div[id^=fold]')
     else:
-        subvragen = None
+        subvragen = []
     
     return subvragen
 
-def get_velden(driver):
+def get_velden(driver, vraagid):
     """ Aantal invulvelden ophalen van een invulveldenvraag
     
     """
-    velden = len(driver.find_elements_by_css_selector('div[id^="question-1_answer-"'))
+    velden = len(driver.find_elements_by_css_selector(f'div[id^="{vraagid}_answer-"'))
 
     return velden
 
@@ -236,7 +242,7 @@ def lookup_qid(testdict, vraag):
     """
     if vraag.soort == 'tabel':
         gegeven_antwoord = {}
-        subs = [vraag.vraagid + '-' + str(x) for x in range(1, vraag.subvragen + 1)]
+        subs = [vraag.vraagid + '-' + x for x in vraag.subvragen]
         for sub in subs:
             if sub in testdict:
                 gegeven_antwoord[sub] = testdict[sub]        
@@ -257,11 +263,11 @@ def lookup_qid(testdict, vraag):
             gegeven_antwoord = testdict.get(vraag.vraagid)
             if gegeven_antwoord == '':
                 antwoordnummer = ('random', '1')
-            elif len(gegeven_antwoord) == 1 and gegeven_antwoord.isnumeric():
+            elif len(gegeven_antwoord) < 3 and gegeven_antwoord.isnumeric():
                 antwoordnummer = ('sr', gegeven_antwoord)
-            elif len(gegeven_antwoord) > 1 and gegeven_antwoord.replace(',','').isnumeric():
+            elif len(gegeven_antwoord) > 2 and gegeven_antwoord.replace(',','').isnumeric():
                 #meerdere antwoorden, hoort bij MR vraag
-                antwoordnummer = ('mr', gegeven_antwoord.split(','))
+                antwoordnummer = ('mr', list(filter(None,gegeven_antwoord.split(','))))
             elif len(gegeven_antwoord) > 1 and gegeven_antwoord.lower().islower():
                 #antwoordlabel opgegeven
                 antwoordnummer = ('label', gegeven_antwoord)
@@ -384,7 +390,7 @@ def getvraag(driver):
     antwoorden = get_antwoordopties(driver, vraagsoort)
 
     if vraagsoort == 'invulvelden':
-        velden = get_velden(driver)
+        velden = get_velden(driver, vraagid)
     else:
         velden = 0
 
@@ -396,24 +402,41 @@ def getvraag(driver):
     return vraag(vraagid, vraagsoort, subvragen, velden, antwoorden, escape)
 
 
-driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
-driver.implicitly_wait(0)
-bestand = get_testfile(r"C:\Python projects\Survey testbot\scenarios_v2.csv")
+#-----------------------------------------------------------------------#
+# runnen van het script                                                 #
+#-----------------------------------------------------------------------#
 
+
+driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+driver.implicitly_wait(1)
+bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 testscenarios v0.2_sample5.csv")
+bestand
 
 for scenario in bestand:
-    inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+    #inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+    driver.get(scenario['Loginlinks'])
     endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
     while endpage == False:
+        #start_time = time.time()
         vx = getvraag(driver)
-        invullen(driver, vx, lookup_qid(scenario,vx))
+        antwoord = lookup_qid(scenario,vx)
+        # print(vx.vraagid)
+        # print("Process finished --- %s seconds ---" % (time.time() - start_time))
+        print(vx.vraagid + ' ' + str(antwoord))
+        invullen(driver, vx, antwoord)
         endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
 
 
 # inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
-# vx = getvraag(driver)
-# antwoorden = lookup_qid(bestand[0], vx)
-# antwoorden
-# invullen(driver, vx, lookup_qid(bestand[0], vx))
+driver.get(bestand[0]['Loginlinks'])
+vx = getvraag(driver)
+get_subvragen(driver)
+vx.antwoorden
+vx.vraagid
+vx.subvragen
+antwoorden = lookup_qid(bestand[0], vx)
+antwoorden
+invullen(driver, vx, antwoorden)
 
-# bestand[0]
+
+
