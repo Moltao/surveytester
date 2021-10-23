@@ -32,6 +32,6 @@ methode:
             schrijf naar log met login, vraagnummer, antwoordpoging en sluit browser af.
 
 #to do:
-error handling. Als een gegeven antwoord niet gevonden kan worden moet dit gelogd worden en de browser afgesloten
--invulveldenvraag wordt niet herkend
--taalkeuze toevoegen
+- error handling. Als een gegeven antwoord niet gevonden kan worden moet dit gelogd worden en de browser afgesloten
+- taalkeuze toevoegen
+- anders namelijk met open veld invullen als dit random gekozen wordt

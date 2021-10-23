@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 import csv
 import random
@@ -77,37 +78,42 @@ def invullen(driver, vraag, gegeven_antwoorden):
     geen return. Vinkt de juiste opties aan en klikt op volgende.
 
     """
-    if gegeven_antwoorden[0] == 'random':
-        if len(vraag.antwoorden) > 0:
-            gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden))))
-        else:
-            gegeven_antwoorden = (vraag.soort, '1')
+    try:
+        if gegeven_antwoorden[0] == 'random':
+            if len(vraag.antwoorden) > 0:
+                gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden))))
+            else:
+                gegeven_antwoorden = (vraag.soort, '1')
 
-    if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
-        for subvraag in vraag.subvragen:
-            antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + subvraag]
-            driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
-    
-    elif vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
-        for veld in range(1, vraag.velden+1):
-            vraagid = vraag.vraagid + '-answer-' + str(veld)
-            antwoord = gegeven_antwoorden[1][vraagid]
-            driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
-    
-    elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
-        driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
-    
-    elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
-        for item in gegeven_antwoorden[1]:
-            driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
-    
-    elif vraag.soort == 'open':
-        driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1").send_keys("test test test")
-    
-    elif vraag.soort == 'tussen':
-        pass
+        if vraag.soort == 'tabel' and gegeven_antwoorden[0] == 'tabel':
+            for subvraag in vraag.subvragen:
+                antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + subvraag]
+                driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
+        
+        elif vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
+            for veld in range(1, vraag.velden+1):
+                vraagid = vraag.vraagid + '-answer-' + str(veld)
+                antwoord = gegeven_antwoorden[1][vraagid]
+                driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
+        
+        elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
+            driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
+        
+        elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
+            for item in gegeven_antwoorden[1]:
+                driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
+        
+        elif vraag.soort == 'open':
+            driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1").send_keys("test test test")
+        
+        elif vraag.soort == 'tussen':
+            pass
+        
+        driver.find_element_by_id("button-next-nav").click()       
+        print(gegeven_antwoorden)
+    except NoSuchElementException as exc:
+        raise exc
 
-    driver.find_element_by_id("button-next-nav").click()
 
 def invulvelden_invullen(driver, vraag, gegeven_antwoorden):
     """ Invulveldenvraag invullen. Deze werkt anders dan de standaardvragen
@@ -272,7 +278,7 @@ def lookup_qid(testdict, vraag):
                 #antwoordlabel opgegeven
                 antwoordnummer = ('label', gegeven_antwoord)
         else:
-            antwoordnummer = ('random', '1')
+            antwoordnummer = (vraag.soort, '1')
 
     return antwoordnummer
 
@@ -409,7 +415,7 @@ def getvraag(driver):
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 testscenarios v0.2_sample5.csv")
+bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 testscenarios v0.2_sample100.csv")
 bestand
 
 for scenario in bestand:
@@ -423,20 +429,28 @@ for scenario in bestand:
         # print(vx.vraagid)
         # print("Process finished --- %s seconds ---" % (time.time() - start_time))
         print(vx.vraagid + ' ' + str(antwoord))
-        invullen(driver, vx, antwoord)
-        endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
+        try:
+            invullen(driver, vx, antwoord)
+            endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
+        except NoSuchElementException as exc:
+            with open('C:\Python projects\Survey testbot\errors.log', 'a') as log:
+                log.write(f"{scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
+            endpage = True
+            
+        
+        
 
 
-# inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
-driver.get(bestand[0]['Loginlinks'])
-vx = getvraag(driver)
-get_subvragen(driver)
-vx.antwoorden
-vx.vraagid
-vx.subvragen
-antwoorden = lookup_qid(bestand[0], vx)
-antwoorden
-invullen(driver, vx, antwoorden)
+# # inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+# driver.get(bestand[0]['Loginlinks'])
+# vx = getvraag(driver)
+# get_subvragen(driver)
+# vx.antwoorden
+# vx.vraagid
+# vx.subvragen
+# antwoorden = lookup_qid(bestand[0], vx)
+# antwoorden
+# invullen(driver, vx, antwoorden)
 
 
 
