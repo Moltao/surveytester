@@ -1,9 +1,10 @@
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+#from selenium.webdriver.common.keys import Keys
+#from selenium.webdriver.common.by import By
+#from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import ElementNotInteractableException
+#from selenium.webdriver.support import expected_conditions as EC
 import csv
 import random
 from pathlib import Path
@@ -68,6 +69,7 @@ def invullen(driver, vraag, gegeven_antwoorden):
 
     Parameters
     ----------
+    driver: selenium webdriver
     vraag: vraagobject
         aangemaakt door getvraag()
     gegeven_antwoorden: tuple
@@ -96,10 +98,10 @@ def invullen(driver, vraag, gegeven_antwoorden):
                 antwoord = gegeven_antwoorden[1][vraagid]
                 driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
         
-        elif vraag.soort == 'sr' and gegeven_antwoorden[0] == 'sr':
+        elif vraag.soort == 'sr':
             driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
         
-        elif vraag.soort == 'mr' and gegeven_antwoorden[0] == 'mr':
+        elif vraag.soort == 'mr':
             for item in gegeven_antwoorden[1]:
                 driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
         
@@ -111,7 +113,7 @@ def invullen(driver, vraag, gegeven_antwoorden):
         
         driver.find_element_by_id("button-next-nav").click()       
         print(gegeven_antwoorden)
-    except NoSuchElementException as exc:
+    except (NoSuchElementException, ElementNotInteractableException) as exc:
         raise exc
 
 
@@ -278,7 +280,7 @@ def lookup_qid(testdict, vraag):
                 #antwoordlabel opgegeven
                 antwoordnummer = ('label', gegeven_antwoord)
         else:
-            antwoordnummer = (vraag.soort, '1')
+            antwoordnummer = (vraag.soort, )
 
     return antwoordnummer
 
@@ -415,10 +417,15 @@ def getvraag(driver):
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 testscenarios v0.2_sample100.csv")
+bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 testscenarios v0.2.csv")
 bestand
+counter = 0
 
 for scenario in bestand:
+    counter += 1
+    if counter < 454:
+        continue
+    print('login ' + str(counter))
     #inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
     driver.get(scenario['Loginlinks'])
     endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
@@ -432,25 +439,25 @@ for scenario in bestand:
         try:
             invullen(driver, vx, antwoord)
             endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
-        except NoSuchElementException as exc:
+        except (NoSuchElementException, ElementNotInteractableException) as exc:
             with open('C:\Python projects\Survey testbot\errors.log', 'a') as log:
-                log.write(f"{scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
+                log.write(f"Login {counter} --- {scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
             endpage = True
             
         
         
 
 
-# # inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
-# driver.get(bestand[0]['Loginlinks'])
-# vx = getvraag(driver)
-# get_subvragen(driver)
-# vx.antwoorden
-# vx.vraagid
-# vx.subvragen
-# antwoorden = lookup_qid(bestand[0], vx)
-# antwoorden
-# invullen(driver, vx, antwoorden)
+inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+driver.get(bestand[0]['Loginlinks'])
+vx = getvraag(driver)
+get_subvragen(driver)
+vx.antwoorden
+vx.vraagid
+vx.subvragen
+antwoorden = lookup_qid(bestand[0], vx)
+antwoorden
+invullen(driver, vx, antwoorden)
 
 
 
