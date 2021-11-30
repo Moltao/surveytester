@@ -84,7 +84,7 @@ def invullen(driver, vraag, gegeven_antwoorden):
     try:
         if gegeven_antwoorden[0] == 'random':
             if len(vraag.antwoorden) > 0:
-                gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden))))
+                gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden))))    
             else:
                 gegeven_antwoorden = (vraag.soort, '1')
 
@@ -269,7 +269,7 @@ def lookup_qid(testdict, vraag):
         antwoordnummer = ('invulvelden', gegeven_antwoord)  
     else:
         if vraag.vraagid in testdict:
-            print('Vraag zit in testscenario')
+            print('Vraag zit WEL in testscenario')
             gegeven_antwoord = testdict.get(vraag.vraagid)
             if gegeven_antwoord == '':
                 antwoordnummer = ('random', '99')
@@ -281,7 +281,10 @@ def lookup_qid(testdict, vraag):
                 antwoordnummer = ('label', gegeven_antwoord)
         else:
             print('Vraag zit niet in testscenario')
-            antwoordnummer = ('random', str(random.randint(1, len(vraag.antwoorden))))
+            if len(vraag.antwoorden) > 0:
+                antwoordnummer = ('random', str(random.randint(1, len(vraag.antwoorden))))
+            else:
+                antwoordnummer = ('random', '1')
 
     return antwoordnummer
 
