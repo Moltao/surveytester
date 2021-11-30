@@ -57,6 +57,7 @@ def inloggen(driver, url, login):
     Geen returns, logt in op de survey
 
     """
+
     driver.get(url)
     driver.implicitly_wait(1)
     user = driver.find_element_by_xpath('//*[@id="login-email"]')
@@ -185,11 +186,11 @@ def get_q_type(driver):
     #vraagtype achterhalen
     if hasXpath(driver, '//form/div[@table]'):
         vraagtype = 'tabel'
-    elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Radiobutton"]'):
+    elif hasXpath(driver, '//*[@data-answer-type="Radiobutton"]'):
         vraagtype = 'sr'
     elif hasXpath(driver, '//form/div[@open]'):
         vraagtype = 'open'
-    elif hasXpath(driver, '//form/div/div/div[1][@data-answer-type="Checkbox"]'):
+    elif hasXpath(driver, '//*[@data-answer-type="Checkbox"]'):
         vraagtype = 'mr'
     elif hasXpath(driver, '//form/div[@empty]'):
         vraagtype = 'tussen'
@@ -268,11 +269,10 @@ def lookup_qid(testdict, vraag):
         antwoordnummer = ('invulvelden', gegeven_antwoord)  
     else:
         if vraag.vraagid in testdict:
+            print('Vraag zit in testscenario')
             gegeven_antwoord = testdict.get(vraag.vraagid)
             if gegeven_antwoord == '':
-                antwoordnummer = ('random', '1')
-            elif len(gegeven_antwoord) < 3 and gegeven_antwoord.isnumeric():
-                antwoordnummer = ('sr', gegeven_antwoord)
+                antwoordnummer = ('random', '99')
             elif len(gegeven_antwoord) > 2 and gegeven_antwoord.replace(',','').isnumeric():
                 #meerdere antwoorden, hoort bij MR vraag
                 antwoordnummer = ('mr', list(filter(None,gegeven_antwoord.split(','))))
@@ -280,7 +280,8 @@ def lookup_qid(testdict, vraag):
                 #antwoordlabel opgegeven
                 antwoordnummer = ('label', gegeven_antwoord)
         else:
-            antwoordnummer = (vraag.soort, )
+            print('Vraag zit niet in testscenario')
+            antwoordnummer = ('random', str(random.randint(1, len(vraag.antwoorden))))
 
     return antwoordnummer
 
@@ -319,7 +320,7 @@ def get_antwoordopties(driver, vraagsoort):
             v = x.find_element_by_css_selector('label span[data-label=""]').text
             antwoorden[k]=v
     else:
-        surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[@data-answer=""]')
+        surveyantwoorden = driver.find_elements_by_xpath('//*[@data-answer=""]')
         for x in surveyantwoorden:                                  
             k = x.find_element_by_xpath('.//input').get_attribute('id')
             k = k[k.rindex('-')+1:]
@@ -417,17 +418,17 @@ def getvraag(driver):
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 testscenarios v0.2.csv")
+bestand = get_testfile(r"C:\Python projects\Survey testbot\data\testnocases.csv")
 bestand
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    if counter < 454:
-        continue
+    # if counter < 1:
+    #     continue
     print('login ' + str(counter))
-    #inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
-    driver.get(scenario['Loginlinks'])
+    inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
+    # driver.get(scenario['Loginlinks'])
     endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
     while endpage == False:
         #start_time = time.time()
@@ -448,16 +449,25 @@ for scenario in bestand:
         
 
 
-inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',scenario['login'])
+inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',bestand[0]['Login'])
 driver.get(bestand[0]['Loginlinks'])
 vx = getvraag(driver)
+antwoorden = lookup_qid(bestand[0], vx)
+invullen(driver, vx, antwoorden)
+
+
+
+get_q_type(driver)
+
 get_subvragen(driver)
 vx.antwoorden
 vx.vraagid
 vx.subvragen
 antwoorden = lookup_qid(bestand[0], vx)
 antwoorden
+lookup_qid(bestand[0], vx)
 invullen(driver, vx, antwoorden)
+
 
 
 
