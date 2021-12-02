@@ -84,7 +84,7 @@ def invullen(driver, vraag, gegeven_antwoorden):
     try:
         if gegeven_antwoorden[0] == 'random':
             if len(vraag.antwoorden) > 0:
-                gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden))))    
+                gegeven_antwoorden = (vraag.soort, str(random.randint(1, len(vraag.antwoorden)-1)))    
             else:
                 gegeven_antwoorden = (vraag.soort, '1')
 
@@ -93,11 +93,28 @@ def invullen(driver, vraag, gegeven_antwoorden):
                 antwoordoptie = gegeven_antwoorden[1][vraag.vraagid + '-' + subvraag]
                 driver.find_element_by_id(f"{vraag.vraagid}_sq-{subvraag}_checkradio-answer-label-{antwoordoptie}").click()
         
-        elif vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
+        elif vraag.soort == 'invulvelden':
             for veld in range(1, vraag.velden+1):
                 vraagid = vraag.vraagid + '-answer-' + str(veld)
                 antwoord = gegeven_antwoorden[1][vraagid]
-                driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}").send_keys(antwoord)
+                inputveld = driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-{veld}")
+                if ("getal" in inputveld.get_attribute("placeholder") or 
+                    "Nummer" in inputveld.get_attribute("placeholder") or 
+                    "number" in inputveld.get_attribute("placeholder")):
+                    if inputveld.get_attribute("min") != '':
+                        min = int(inputveld.get_attribute("min"))
+                    else:
+                        min = 1
+                    if inputveld.get_attribute("max") != '':
+                        max = int(inputveld.get_attribute("max"))
+                    else:
+                        max = 99
+                    randomgetal = str(random.randint(min, max))
+                    antwoord = randomgetal
+                else:
+                    antwoord = "test test test"
+                gegeven_antwoorden = (vraagid, antwoord)
+                inputveld.send_keys(antwoord)
         
         elif vraag.soort == 'sr':
             driver.find_element_by_id(f"{vraag.vraagid}_checkradio-answer-label-{gegeven_antwoorden[1]}").click()
@@ -107,8 +124,24 @@ def invullen(driver, vraag, gegeven_antwoorden):
                 driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
         
         elif vraag.soort == 'open':
-            driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1").send_keys("test test test")
-        
+            inputveld = driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1")
+            if "getal" in inputveld.get_attribute("placeholder"):
+                if inputveld.get_attribute("min") != '':
+                    min = int(inputveld.get_attribute("min"))
+                else:
+                    min = 1
+                if inputveld.get_attribute("max") != '':
+                    max = int(inputveld.get_attribute("max"))
+                else:
+                    max = 99
+                randomgetal = str(random.randint(min, max))
+                antwoord = randomgetal
+            else:
+                antwoord = "test test test"
+
+            inputveld.send_keys(antwoord)
+            gegeven_antwoorden= (vraag.soort, antwoord)
+
         elif vraag.soort == 'tussen':
             pass
         
@@ -125,7 +158,7 @@ def invulvelden_invullen(driver, vraag, gegeven_antwoorden):
     
     """
     #aantal invulvelden ophalen
-    if vraag.soort == 'invulvelden' and gegeven_antwoorden[0] == 'invulvelden':
+    if vraag.soort == 'invulvelden':
         for veld in range(1, vraag.velden+1):
             vraagid = vraag.vraagid + '_answer' + str(veld)
             antwoord = gegeven_antwoorden[1][vraagid]
@@ -279,6 +312,8 @@ def lookup_qid(testdict, vraag):
             elif len(gegeven_antwoord) > 1 and gegeven_antwoord.lower().islower():
                 #antwoordlabel opgegeven
                 antwoordnummer = ('label', gegeven_antwoord)
+            else:
+                antwoordnummer = ('sr', gegeven_antwoord)
         else:
             print('Vraag zit niet in testscenario')
             if len(vraag.antwoorden) > 0:
@@ -421,24 +456,21 @@ def getvraag(driver):
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Python projects\Survey testbot\data\testnocases.csv")
-bestand
+bestand = get_testfile(r"C:\Python projects\Survey testbot\data\NSE2022 Input InvulBot - invullinator test2 csv.csv")
+bestand[0]
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    # if counter < 1:
-    #     continue
+    if counter < 399:
+        continue
     print('login ' + str(counter))
-    inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
-    # driver.get(scenario['Loginlinks'])
+    #inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
+    driver.get(scenario['Loginlinks'])
     endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
     while endpage == False:
-        #start_time = time.time()
         vx = getvraag(driver)
         antwoord = lookup_qid(scenario,vx)
-        # print(vx.vraagid)
-        # print("Process finished --- %s seconds ---" % (time.time() - start_time))
         print(vx.vraagid + ' ' + str(antwoord))
         try:
             invullen(driver, vx, antwoord)
@@ -446,30 +478,31 @@ for scenario in bestand:
         except (NoSuchElementException, ElementNotInteractableException) as exc:
             with open('C:\Python projects\Survey testbot\errors.log', 'a') as log:
                 log.write(f"Login {counter} --- {scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
+
             endpage = True
             
         
-        
+# bestand = get_testfile(r"C:\Python projects\Survey testbot\data\[oud]\testnocases.csv")
+# inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['Login'])
+# # # driver.get(bestand[0]['Loginlinks'])
+# vx = getvraag(driver)
+# # inputveld = driver.find_element_by_id(f"{vx.vraagid}_checkradio-input-answer-1")
+# # inputveld.get_attribute("min")
+# antwoorden = lookup_qid(bestand[0], vx)
+# invullen(driver, vx, antwoorden)
 
 
-inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',bestand[0]['Login'])
-driver.get(bestand[0]['Loginlinks'])
-vx = getvraag(driver)
-antwoorden = lookup_qid(bestand[0], vx)
-invullen(driver, vx, antwoorden)
 
+# get_q_type(driver)
 
-
-get_q_type(driver)
-
-get_subvragen(driver)
-vx.antwoorden
-vx.vraagid
-vx.subvragen
-antwoorden = lookup_qid(bestand[0], vx)
-antwoorden
-lookup_qid(bestand[0], vx)
-invullen(driver, vx, antwoorden)
+# get_subvragen(driver)
+# vx.antwoorden
+# vx.vraagid
+# vx.subvragen
+# antwoorden = lookup_qid(bestand[0], vx)
+# antwoorden
+# lookup_qid(bestand[0], vx)
+# invullen(driver, vx, antwoorden)
 
 
 
