@@ -125,8 +125,15 @@ def invullen(driver, vraag, gegeven_antwoorden):
         
         elif vraag.soort == 'mr':
             for item in gegeven_antwoorden[1]:
-                driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
-        
+                if vraag.vraagid == 'question-46' and item == '2':
+                    item = '3'
+                try:    
+                    driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
+                except:
+                    pass
+                
+
+
         elif vraag.soort == 'open':
             inputveld = driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1")
             if "getal" in inputveld.get_attribute("placeholder"):
@@ -352,15 +359,15 @@ def get_antwoordopties(driver, vraagsoort):
     antwoorden ={}
 
     if vraagsoort == 'tabel':
-        if hasXpath(driver, "//form/div[@table]"):  
-            pass
-        else:
-            surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[1]/div[@data-option-list=""]/div')
-            for x in surveyantwoorden:                                  
-                k = x.find_element_by_xpath('.//input').get_attribute('id')
-                k = k[k.rindex('-')+1:]
-                v = x.find_element_by_xpath('.//input').get_attribute('value')
-                antwoorden[k]=v
+        #if hasXpath(driver, "//form/div[@table]"):  
+            #pass
+        #else:
+        surveyantwoorden = driver.find_elements_by_xpath('//form/div/div/div[1]/div[@data-option-list=""]/div')
+        for x in surveyantwoorden:                                  
+            k = x.find_element_by_xpath('.//input').get_attribute('id')
+            k = k[k.rindex('-')+1:]
+            v = x.find_element_by_xpath('.//input').get_attribute('value')
+            antwoorden[k]=v
     elif vraagsoort == 'open':
         antwoorden = {}
     elif vraagsoort == 'tussen':
@@ -375,9 +382,9 @@ def get_antwoordopties(driver, vraagsoort):
     else:
         surveyantwoorden = driver.find_elements_by_xpath('//*[@data-answer=""]')
         for x in surveyantwoorden:                                  
-            k = x.find_element_by_xpath('.//input').get_attribute('id')
+            k = x.find_element_by_xpath('.//label').get_attribute('id')
             k = k[k.rindex('-')+1:]
-            v = x.find_element_by_xpath('.//input').get_attribute('value')
+            v = x.find_element_by_xpath('.//label/span').text
             antwoorden[k]=v
 
     return antwoorden
@@ -472,12 +479,11 @@ def getvraag(driver):
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
 bestand = get_testfile(r"C:\Werk\SBB\PM33092 BPV-monitor POL Linkjes Invullinator.csv")
-bestand[51]
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    if counter < 52:
+    if counter < 493:
          continue
     print('login ' + str(counter))
     #inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
@@ -492,40 +498,22 @@ for scenario in bestand:
             endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
         except (NoSuchElementException, ElementNotInteractableException) as exc:
             with open('C:\Python projects\Survey testbot\errors_sbb.log', 'a') as log:
-                log.write(f"Login {counter} --- {scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
+                log.write(f"Login {counter} --- {scenario['Loginlink']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
 
             endpage = True
             
         
 # # bestand = get_testfile(r"C:\Python projects\Survey testbot\data\[oud]\testnocases.csv")
 # # inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['Login'])
-driver.get("https://q.crowdtech.com/dabc8a4c-8a4f-4f78-a7a6-5df0789fc35e/670bfc6c-8811-453e-adcf-144f10bc1b15")
-vx = getvraag(driver)
-# inputveld = driver.find_element_by_id(f"{vx.vraagid}_checkradio-input-answer-1")
-# inputveld.get_attribute("min")
-get_antwoordopties(driver, vx.soort)
-antwoorden = lookup_qid(bestand[51], vx)
-# invullen(driver, vx, antwoorden)
 
-# driver.get("https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ")
-# hasXpath(driver, "//table[@table-matrix='']")
-# # get_q_type(driver)
+# driver.get("https://q.crowdtech.com/dabc8a4c-8a4f-4f78-a7a6-5df0789fc35e/670bfc6c-8811-453e-adcf-144f10bc1b15")
+# vx = getvraag(driver)
+# # inputveld = driver.find_element_by_id(f"{vx.vraagid}_checkradio-input-answer-1")
+# # inputveld.get_attribute("min")
+# # get_antwoordopties(driver, vx.soort)
+# # antwoorden = lookup_qid(bestand[51], vx)
+# # invullen(driver, vx, antwoorden)
 
-# get_subvragen(driver)
-# subs = driver.find_elements_by_xpath("//label[contains(@id,'checkradio-answer-label-1')]")
-# len(subs)
-# subvragen = [re.search("(sq-)(\d+)", x.get_attribute("id"))[2] for x in subs]
-# [x.get_attribute('id') for x in subs]
-vx.antwoorden
-# # vx.vraagid
-# vx.subvragen
-# antwoorden = lookup_qid(bestand[0], vx)
-# antwoorden
-# lookup_qid(bestand[0], vx)
-# invullen(driver, vx, antwoorden)
-# question-7_checkradio-answer-label-7
-# opties = driver.find_elements_by_xpath("//label[starts-with(@id, 'question-7_checkradio-answer-label-')]")
-# for x in opties:
-#     dash = x.get_attribute("id").rfind("-")+1
-#     x.get_attribute("id")[dash:]
-# optielijst = [x.get_attribute("id")[(x.get_attribute("id").rfind("-")+1):] for x in driver.find_elements_by_xpath("//label[starts-with(@id, 'question-7_checkradio-answer-label-')]")]
+# elements = driver.find_elements_by_xpath("//form/div")
+# for x in elements:
+#     print(x.get_attribute('id'))
