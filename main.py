@@ -478,12 +478,12 @@ def getvraag(driver):
 
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Werk\SBB\PM33092 BPV-monitor POL Linkjes Invullinator.csv")
+bestand = get_testfile(r"C:\Werk\SBB\PM33092 BPV studenten login links Invullinator.csv")
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    if counter < 493:
+    if counter < 72 :
          continue
     print('login ' + str(counter))
     #inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
