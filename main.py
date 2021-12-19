@@ -476,18 +476,18 @@ def getvraag(driver):
 #-----------------------------------------------------------------------#
 
 
-driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+driver = webdriver.Firefox('C:\Python projects\surveytester\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Werk\SBB\PM33092 BPV studenten login links Invullinator.csv")
+bestand = get_testfile(r"C:\Thuiswerken\SK123\NSE2022\Invulinator\NSE2022 Input InvulBot - invullinator test3 csv - server1.csv")
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    if counter < 72 :
+    if counter < 189 :
          continue
     print('login ' + str(counter))
     #inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
-    driver.get(scenario['Loginlink'])
+    driver.get(scenario['Loginlinks'])
     endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
     while endpage == False:
         vx = getvraag(driver)
@@ -497,8 +497,8 @@ for scenario in bestand:
             invullen(driver, vx, antwoord)
             endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
         except (NoSuchElementException, ElementNotInteractableException) as exc:
-            with open('C:\Python projects\Survey testbot\errors_sbb.log', 'a') as log:
-                log.write(f"Login {counter} --- {scenario['Loginlink']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
+            with open('C:\Python projects\surveytester\errors.log', 'a') as log:
+                log.write(f"Login {counter} --- {scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
 
             endpage = True
             

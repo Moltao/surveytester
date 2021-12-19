@@ -6,3 +6,4 @@ data/NSE2022 testscenarios v0.2_sample5.csv
 data/NSE2022 testscenarios v0.2.csv
 data/NSE2022 testscenarios.csv
 *.log
+geckodriver.log
