@@ -9,6 +9,7 @@ import csv
 import random
 import re
 from pathlib import Path
+import time
 #from .Vraagclass import vraag
 
 # driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
@@ -125,15 +126,13 @@ def invullen(driver, vraag, gegeven_antwoorden):
         
         elif vraag.soort == 'mr':
             for item in gegeven_antwoorden[1]:
-                if vraag.vraagid == 'question-46' and item == '2':
-                    item = '3'
+                # if vraag.vraagid == 'question-46' and item == '2':
+                #     item = '3'
                 try:    
                     driver.find_element_by_id(f'{vraag.vraagid}_checkradio-answer-label-{item}').click()
                 except:
                     pass
                 
-
-
         elif vraag.soort == 'open':
             inputveld = driver.find_element_by_id(f"{vraag.vraagid}_checkradio-input-answer-1")
             if "getal" in inputveld.get_attribute("placeholder"):
@@ -153,6 +152,9 @@ def invullen(driver, vraag, gegeven_antwoorden):
             inputveld.send_keys(antwoord)
             gegeven_antwoorden= (vraag.soort, antwoord)
 
+        elif vraag.soort == 'slider':
+            driver.find_element_by_id(f"{vraag.vraagid}_sq-1_checkradio-answer-label-3").click()
+            
         elif vraag.soort == 'tussen':
             pass
         
@@ -190,7 +192,14 @@ def get_q_id(driver):
     
     """
     #vraagnummer achterhalen vanuit survey
-    element = driver.find_element_by_xpath("//form/div")
+    while True:
+        try:
+            element = driver.find_element_by_xpath("//form/div")
+        except NoSuchElementException:
+            time.sleep(3)
+            continue
+        break
+
     vraagid = element.get_attribute("id")
 
     return vraagid
@@ -240,6 +249,8 @@ def get_q_type(driver):
         vraagtype = 'tussen'
     elif hasXpath(driver, '//form/div[@fields]'):
         vraagtype = 'invulvelden'
+    elif hasXpath(driver, "//div[@data-answer='Slider']"):
+        vraagtype = 'slider'
     else:
         vraagtype = 'unknown'
     
@@ -475,19 +486,18 @@ def getvraag(driver):
 # runnen van het script                                                 #
 #-----------------------------------------------------------------------#
 
-
 driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Werk\SBB\PM33092 BPV studenten login links Invullinator.csv")
+bestand = get_testfile(r"C:\Werk\SK123\NSE2022 Input InvulBot - invullinator test3 s2.csv")
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    if counter < 72 :
+    if counter < 181 :
          continue
     print('login ' + str(counter))
     #inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
-    driver.get(scenario['Loginlink'])
+    driver.get(scenario['Loginlinks'])
     endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
     while endpage == False:
         vx = getvraag(driver)
@@ -497,8 +507,8 @@ for scenario in bestand:
             invullen(driver, vx, antwoord)
             endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
         except (NoSuchElementException, ElementNotInteractableException) as exc:
-            with open('C:\Python projects\Survey testbot\errors_sbb.log', 'a') as log:
-                log.write(f"Login {counter} --- {scenario['Loginlink']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
+            with open('C:\Python projects\Survey testbot\errors_nse_test3.log', 'a') as log:
+                log.write(f"Login {counter} --- {scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
 
             endpage = True
             
@@ -506,8 +516,9 @@ for scenario in bestand:
 # # bestand = get_testfile(r"C:\Python projects\Survey testbot\data\[oud]\testnocases.csv")
 # # inloggen(driver, 'https://q.crowdtech.com/r5r11EDq_k6lcp_I87yPWQ',bestand[0]['Login'])
 
-# driver.get("https://q.crowdtech.com/dabc8a4c-8a4f-4f78-a7a6-5df0789fc35e/670bfc6c-8811-453e-adcf-144f10bc1b15")
+# driver.get("https://q.crowdtech.com/GkBIPyYOsUerI9Ro732l7Q")
 # vx = getvraag(driver)
+# vx.soort
 # # inputveld = driver.find_element_by_id(f"{vx.vraagid}_checkradio-input-answer-1")
 # # inputveld.get_attribute("min")
 # # get_antwoordopties(driver, vx.soort)
