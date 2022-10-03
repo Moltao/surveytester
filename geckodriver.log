@@ -100,3 +100,113 @@ console.warn: SearchSettings: "get: No settings file exists, new profile?" (new 
 1632433248172	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
 1632433256177	Marionette	INFO	Stopped listening on port 51079
 JavaScript error: resource:///modules/Interactions.jsm, line 230: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+1639950323624	geckodriver	INFO	Listening on 127.0.0.1:60750
+1639950326915	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofileQYEvAX"
+1639950348980	geckodriver	INFO	Listening on 127.0.0.1:60853
+1639950352259	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofile0bpEfB"
+1639950352867	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofile0bpEfB\\search.json.mozlz4", (void 0)))
+1639950354976	Marionette	INFO	Listening on port 60861
+1639950355450	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1639950382341	geckodriver	INFO	Listening on 127.0.0.1:61275
+1639950385646	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofile5bzoVL"
+1639950386251	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofile5bzoVL\\search.json.mozlz4", (void 0)))
+1639950388537	Marionette	INFO	Listening on port 61284
+1639950388809	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1639950542333	geckodriver	INFO	Listening on 127.0.0.1:61370
+1639950545761	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofileTxhdVS"
+1639950546364	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofileTxhdVS\\search.json.mozlz4", (void 0)))
+1639950548515	Marionette	INFO	Listening on port 61378
+1639950548944	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
+1639954110672	geckodriver	INFO	Listening on 127.0.0.1:54719
+1639954114080	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofileSn1qOw"
+1639954114760	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofileSn1qOw\\search.json.mozlz4", (void 0)))
+1639954117472	Marionette	INFO	Listening on port 54727
+1639954117791	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
+1639955597256	geckodriver	INFO	Listening on 127.0.0.1:52082
+1639955600581	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofiler2ZikG"
+1639955601167	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofiler2ZikG\\search.json.mozlz4", (void 0)))
+1639955602983	Marionette	INFO	Listening on port 52093
+1639955603256	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1639956197041	geckodriver	INFO	Listening on 127.0.0.1:63420
+1639956200331	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofile4gWsnx"
+1639956200701	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofile4gWsnx\\search.json.mozlz4", (void 0)))
+1639956202266	Marionette	INFO	Listening on port 63428
+1639956202369	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
+1639982514806	geckodriver	INFO	Listening on 127.0.0.1:57234
+1639982518093	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofileCjkKmR"
+1639982518467	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofileCjkKmR\\search.json.mozlz4", (void 0)))
+1639982520104	Marionette	INFO	Listening on port 57245
+1639982520150	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
+1639988544085	geckodriver	INFO	Listening on 127.0.0.1:56577
+1639988547344	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-no-remote" "-profile" "C:\\Users\\KVANDO~1\\AppData\\Local\\Temp\\rust_mozprofileyMqWbp"
+1639988547698	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\kvandoorn\\AppData\\Local\\Temp\\rust_mozprofileyMqWbp\\search.json.mozlz4", (void 0)))
+1639988549699	Marionette	INFO	Listening on port 56585
+1639988550023	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+console.log: WebExtensions: reset-default-search: starting.
+console.log: WebExtensions: reset-default-search: No addons in our list are installed.
+1639989263970	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989269525	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989270758	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989273668	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989279874	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989285695	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989288525	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989291857	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989295528	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31
+1639989299118	Marionette	WARN	TimedPromise timed out after 500 ms: stacktrace:
+TimedPromise/<@chrome://remote/content/marionette/sync.js:238:19
+TimedPromise@chrome://remote/content/marionette/sync.js:223:10
+interaction.flushEventLoop@chrome://remote/content/marionette/interaction.js:431:10
+webdriverClickElement@chrome://remote/content/marionette/interaction.js:179:31

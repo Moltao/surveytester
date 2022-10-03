@@ -4,6 +4,7 @@ from selenium import webdriver
 #from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementNotInteractableException
+from selenium.common.exceptions import ElementClickInterceptedException
 #from selenium.webdriver.support import expected_conditions as EC
 import csv
 import random
@@ -122,7 +123,11 @@ def invullen(driver, vraag, gegeven_antwoorden):
                 inputveld.send_keys(antwoord)
         
         elif vraag.soort == 'sr':
-            driver.find_element_by_id(f"{vraag.vraagid}_label-{gegeven_antwoorden[1]}").click()
+            try:
+                driver.find_element_by_id(f"{vraag.vraagid}_label-{gegeven_antwoorden[1]}").click()
+            except ElementClickInterceptedException:
+                pass
+
         
         elif vraag.soort == 'mr':
             for item in gegeven_antwoorden[1]:
@@ -486,14 +491,14 @@ def getvraag(driver):
 # runnen van het script                                                 #
 #-----------------------------------------------------------------------#
 
-driver = webdriver.Firefox('C:\Python projects\Survey testbot\geckodriver')
+driver = webdriver.Firefox('C:\Python projects\surveytester\geckodriver')
 driver.implicitly_wait(1)
-bestand = get_testfile(r"C:\Werk\SK123\NSE2022 Input InvulBot - invullinator test3 s2.csv")
+bestand = get_testfile(r"C:\Thuiswerken\SK123\NSE2022\Invulinator\NSE2022 Input InvulBot - invullinator test3 csv - server1.csv")
 counter = 0
 
 for scenario in bestand:
     counter += 1
-    if counter < 181 :
+    if counter < 223 :
          continue
     print('login ' + str(counter))
     #inloggen(driver, 'https://q.crowdtech.com/WKG1f3C-aEScDWnNZA_MJw',scenario['Login'])
@@ -507,7 +512,7 @@ for scenario in bestand:
             invullen(driver, vx, antwoord)
             endpage = hasXpath(driver, 'html/body/div/div[@endpage=""]')
         except (NoSuchElementException, ElementNotInteractableException) as exc:
-            with open('C:\Python projects\Survey testbot\errors_nse_test3.log', 'a') as log:
+            with open('C:\Python projects\surveytester\errors_nse_test3.log', 'a') as log:
                 log.write(f"Login {counter} --- {scenario['Loginlinks']} --- antwoordoptie {antwoord} voor {vx.vraagid} niet gevonden \n")
 
             endpage = True
